@@ -1,0 +1,42 @@
+# Ficheiros e pastas do Windows
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Ambientes e segredos
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+*credenc*
+*password*
+*secrets*
+
+# Exports de logs e evidencias geradas em runtime
+*.evtx
+*.evt
+logs/
+*.log
+*_export.csv
+*_export.json
+
+# Ficheiros de máquinas virtuais (VirtualBox / Hyper-V)
+*.vdi
+*.vmdk
+*.vhd
+*.vhdx
+*.ova
+*.ovf
+*.iso
+*.qcow2
+.vagrant/
+
+# Ficheiros temporários de edição
+*.tmp
+*.bak
+*~
+.vscode/
+.idea/
