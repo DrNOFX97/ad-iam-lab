@@ -105,14 +105,16 @@ Nesta entrega existe apenas a documentação de arquitetura e processos
 repositório: ficam para um passo/prompt seguinte. A ordem prevista, tal
 como documentada em `docs/02` a `docs/05`, é:
 
-1. `00-Install-DomainController.ps1`: configura rede estática
+1. Criar a VM `NORTADA-DC01` no VirtualBox com as especificações definidas
+   em `docs/01-arquitetura.md` (Windows Server 2022 Evaluation, 4 GB RAM,
+   2 vCPU, 60 GB de disco dinâmico, VMSVGA, adaptador em modo Bridged).
+2. Instalação manual e interativa do Windows Server 2022 Evaluation nessa
+   VM (não automatizada, tal como a instalação do Ubuntu Server no
+   laboratório Wazuh).
+3. `00-Install-DomainController.ps1`: configura rede estática
    (192.168.1.150), instala as roles AD DS e DNS, e promove a máquina a
-   Controlador de Domínio da floresta `nortada.local`.
-2. Instalação manual e interativa do Windows Server 2022 Evaluation na VM
-   `NORTADA-DC01` (não automatizada, tal como a instalação do Ubuntu
-   Server no laboratório Wazuh).
-3. Promoção a Controlador de Domínio (parte final do passo 1, reinício
-   automático incluído).
+   Controlador de Domínio da floresta `nortada.local`, com reinício
+   automático incluído no final da promoção.
 4. `01-New-OuStructure.ps1`: cria a árvore de OUs sob `OU=NORTADA`.
 5. `02-New-SecurityGroups.ps1`: cria os grupos de segurança segundo o
    modelo AGDLP.
