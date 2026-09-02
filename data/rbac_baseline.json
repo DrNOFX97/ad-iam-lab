@@ -1,0 +1,159 @@
+{
+  "cargos": {
+    "Diretor Geral": {
+      "departamento": "Direcao",
+      "grupos_permitidos": ["GG-Direcao", "DL-Partilha-Direcao-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Assistente de Direção": {
+      "departamento": "Direcao",
+      "grupos_permitidos": ["GG-Direcao", "DL-Partilha-Direcao-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Diretor Financeiro": {
+      "departamento": "Financeira",
+      "grupos_permitidos": ["GG-Financeira", "DL-Partilha-Financeira-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Analista Financeiro": {
+      "departamento": "Financeira",
+      "grupos_permitidos": ["GG-Financeira", "DL-Partilha-Financeira-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Técnica de Contabilidade": {
+      "departamento": "Financeira",
+      "grupos_permitidos": ["GG-Financeira", "DL-Partilha-Financeira-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Técnico de Tesouraria": {
+      "departamento": "Financeira",
+      "grupos_permitidos": ["GG-Financeira", "DL-Partilha-Financeira-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Diretora de Recursos Humanos": {
+      "departamento": "RecursosHumanos",
+      "grupos_permitidos": ["GG-RH", "DL-Partilha-RH-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Tecnico de Recursos Humanos": {
+      "departamento": "RecursosHumanos",
+      "grupos_permitidos": ["GG-RH", "DL-Partilha-RH-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Técnica de Recrutamento": {
+      "departamento": "RecursosHumanos",
+      "grupos_permitidos": ["GG-RH", "DL-Partilha-RH-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Diretor de IT": {
+      "departamento": "IT",
+      "grupos_permitidos": ["GG-IT-Suporte", "DL-Partilha-IT-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Tecnico de Suporte IT": {
+      "departamento": "IT",
+      "grupos_permitidos": ["GG-IT-Suporte", "DL-Partilha-IT-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Técnico de Infraestruturas": {
+      "departamento": "IT",
+      "grupos_permitidos": ["GG-IT-Suporte", "DL-Partilha-IT-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Administrador de Sistemas": {
+      "departamento": "IT",
+      "conta_associada": "administrativa",
+      "grupos_permitidos": ["GG-IT-Admins", "Domain Admins"],
+      "grupos_proibidos": ["Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "critico"
+    },
+    "Administrador de Rede": {
+      "departamento": "IT",
+      "conta_associada": "administrativa",
+      "grupos_permitidos": ["GG-IT-Admins"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "critico"
+    },
+    "Diretora de Marketing": {
+      "departamento": "Marketing",
+      "grupos_permitidos": ["GG-Marketing", "DL-Partilha-Marketing-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Tecnico de Marketing": {
+      "departamento": "Marketing",
+      "grupos_permitidos": ["GG-Marketing", "DL-Partilha-Marketing-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Técnico de Comunicação Digital": {
+      "departamento": "Marketing",
+      "grupos_permitidos": ["GG-Marketing", "DL-Partilha-Marketing-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Técnica de Design Gráfico": {
+      "departamento": "Marketing",
+      "grupos_permitidos": ["GG-Marketing", "DL-Partilha-Marketing-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Diretor de Operações": {
+      "departamento": "Operacoes",
+      "grupos_permitidos": ["GG-Operacoes", "DL-Partilha-Operacoes-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "medio"
+    },
+    "Tecnico de Operacoes": {
+      "departamento": "Operacoes",
+      "grupos_permitidos": ["GG-Operacoes", "DL-Partilha-Operacoes-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Técnica de Logística": {
+      "departamento": "Operacoes",
+      "grupos_permitidos": ["GG-Operacoes", "DL-Partilha-Operacoes-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Técnica de Armazém": {
+      "departamento": "Operacoes",
+      "grupos_permitidos": ["GG-Operacoes", "DL-Partilha-Operacoes-Leitura"],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "baixo"
+    },
+    "Conta de Serviço de Backup": {
+      "departamento": "IT",
+      "conta_associada": "servico",
+      "grupos_permitidos": [
+        "DL-Partilha-Direcao-Leitura",
+        "DL-Partilha-Financeira-Leitura",
+        "DL-Partilha-RH-Leitura",
+        "DL-Partilha-IT-Leitura",
+        "DL-Partilha-Marketing-Leitura",
+        "DL-Partilha-Operacoes-Leitura"
+      ],
+      "grupos_proibidos": ["Domain Admins", "Enterprise Admins", "Schema Admins", "Account Operators", "Backup Operators"],
+      "nivel_risco": "critico"
+    }
+  },
+  "grupos_criticos": [
+    "Domain Admins",
+    "Enterprise Admins",
+    "Schema Admins",
+    "Account Operators",
+    "Backup Operators"
+  ]
+}
