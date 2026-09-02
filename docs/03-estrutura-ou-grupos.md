@@ -3,8 +3,8 @@
 ## 1. Objetivo
 
 Este documento descreve a árvore de Unidades Organizacionais (OUs) e o
-modelo de grupos de segurança do domínio `nortada.local`, a criar pelos
-scripts futuros `01-New-OuStructure.ps1` (estrutura de OUs) e
+modelo de grupos de segurança do domínio `nortada.local`, criados pelos
+scripts `01-New-OuStructure.ps1` (estrutura de OUs) e
 `02-New-SecurityGroups.ps1` (grupos de segurança), ambos a correr no
 Controlador de Domínio `NORTADA-DC01` depois de este estar promovido
 (ver `02-instalacao-dc.md`).
@@ -136,8 +136,13 @@ prática recomendada da Microsoft para ambientes com uma única floresta e um
    mesma função organizacional dentro do domínio.
 3. **Domain Local**: os grupos globais são, por sua vez, adicionados a
    **grupos de domínio local** que representam um recurso ou uma permissão
-   concreta (por exemplo, `DL-Partilha-Financeira-Leitura`,
-   `DL-Partilha-RH-Escrita`, `DL-GPO-Restricoes-Marketing`).
+   concreta. O script `02-New-SecurityGroups.ps1` cria, para cada
+   departamento, um único grupo de domínio local de leitura (por exemplo,
+   `DL-Partilha-Financeira-Leitura`, `DL-Partilha-RH-Leitura`); outras
+   variantes de grupo de domínio local (por exemplo, um `DL-...-Escrita` ou
+   um grupo associado a uma GPO) não são criadas por este script e ficam
+   para uma extensão futura, fora do âmbito da primeira versão do
+   laboratório.
 4. **Permission**: as permissões sobre o recurso (partilha de ficheiros,
    objeto do AD, GPO) são atribuídas **apenas ao grupo de domínio local**,
    nunca diretamente a um grupo global e nunca diretamente a uma conta de
@@ -204,6 +209,20 @@ cada utilizador, pelos seguintes motivos:
 - Os grupos de distribuição (email) ficam em `OU=Distribuicao`, com
   prefixo `DG-` (por exemplo, `DG-Todos-Marketing`), e não participam no
   modelo AGDLP porque não concedem permissões.
+- O script `02-New-SecurityGroups.ps1` cria exatamente os seguintes
+  grupos: os grupos globais `GG-Direcao`, `GG-Financeira`, `GG-RH`,
+  `GG-IT-Suporte`, `GG-Marketing`, `GG-Operacoes` (um por departamento) e
+  `GG-IT-Admins` (grupo administrativo, PAM); e um grupo de domínio local
+  de leitura por departamento, `DL-Partilha-<Departamento>-Leitura`
+  (`DL-Partilha-Direcao-Leitura`, `DL-Partilha-Financeira-Leitura`,
+  `DL-Partilha-RH-Leitura`, `DL-Partilha-IT-Leitura`,
+  `DL-Partilha-Marketing-Leitura`, `DL-Partilha-Operacoes-Leitura`). Para
+  cada departamento, o script adiciona automaticamente o `GG-` correspondente
+  como membro do `DL-` correspondente; `GG-IT-Admins` não tem um grupo de
+  domínio local associado criado por este script. Os parâmetros do script
+  são `-DomainDN` (por omissão `DC=nortada,DC=local`) e `-GruposOuPath`
+  (por omissão `OU=Seguranca,OU=Grupos,OU=NORTADA`, um caminho relativo ao
+  `DomainDN`).
 
 ## 4. Fora de âmbito deste documento
 
@@ -211,3 +230,8 @@ A lista concreta e completa de grupos por cargo, os grupos críticos do
 domínio (Domain Admins e afins) e a matriz de permissões e proibições por
 função ficam detalhados em `06-rbac.md`. Este documento cobre apenas a
 estrutura de OUs e o mecanismo AGDLP em si.
+
+Este documento foi afinado depois de os scripts `01-New-OuStructure.ps1` e
+`02-New-SecurityGroups.ps1` estarem finalizados, para que os exemplos e os
+nomes de parâmetros aqui descritos correspondam exatamente à implementação
+real.

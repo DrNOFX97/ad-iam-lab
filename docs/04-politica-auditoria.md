@@ -3,7 +3,7 @@
 ## 1. Objetivo
 
 Este documento descreve a Advanced Audit Policy a ativar no Controlador de
-Domínio `NORTADA-DC01`, pelo script futuro `05-Set-AuditPolicy.ps1`. O
+Domínio `NORTADA-DC01`, pelo script `05-Set-AuditPolicy.ps1`. O
 propósito desta política não é genérico: é gerar, no Windows Security
 Event Log, exatamente os eventos que o agente Wazuh já instalado neste DC
 vai recolher e enviar para o Wazuh Manager (192.168.1.143), para que o
@@ -18,10 +18,12 @@ de deteção que o SentryLens se propõe a demonstrar.
 ## 2. Categorias e subcategorias a ativar
 
 O script `05-Set-AuditPolicy.ps1` configura, no mínimo, as seguintes
-subcategorias da Advanced Audit Policy (via `auditpol /set`), todas ao
-nível do DC (aplicam-se também por GPO de Default Domain Controllers
-Policy, para garantir que a configuração sobrevive a uma eventual
-reconstrução do DC):
+subcategorias da Advanced Audit Policy (via `auditpol /set`), aplicadas
+localmente no DC. O script não configura nenhuma GPO: aplica a política
+diretamente ao sistema local com `auditpol /set`. Para que a configuração
+sobreviva a uma eventual reconstrução do DC, seria necessário replicá-la
+também numa GPO (por exemplo, a de Default Domain Controllers Policy),
+manualmente, o que fica fora do âmbito deste script:
 
 | Categoria | Subcategoria | Sucesso | Falha | Motivo |
 |---|---|---|---|---|
@@ -47,25 +49,36 @@ Notas sobre a tabela:
   objetos do AD), mas essa extensão fica fora do âmbito definido para a
   primeira versão do script.
 
-## 3. Comandos previstos (referência, não é o script)
+## 3. Comandos usados pelo script
 
 O script usa `auditpol /set /subcategory:"<nome>" /success:enable
 /failure:enable` (ou só `/success:enable` onde a falha não se aplica) para
-cada uma das subcategorias acima. Exemplos de subcategorias pelo nome
-exato reconhecido por `auditpol` em Windows Server 2022 em português:
+cada uma das subcategorias acima. Os nomes usados nas chamadas são:
 "Gestão de Contas de Utilizador", "Gestão de Grupos de Segurança", "Início
 de Sessão", "Início de Sessão Especial", "Bloqueio de Conta", "Outros
-Eventos de Acesso a Objetos", "Criação de Processo" (os nomes exatos em
-português dependem da instalação; o script deve confirmar os nomes reais
-disponíveis com `auditpol /list /subcategory:*` antes de os aplicar, para
-não falhar silenciosamente por incompatibilidade de idioma).
+Eventos de Acesso a Objetos", "Criação de Processo".
+
+Antes de aplicar qualquer alteração, o script corre
+`auditpol /list /subcategory:*` e, para cada subcategoria, tenta primeiro
+encontrar o nome em português de Portugal listado acima; se esse nome não
+existir na saída do comando, tenta o nome equivalente em inglês como
+alternativa ("User Account Management", "Security Group Management",
+"Logon", "Special Logon", "Account Lockout", "Other Object Access Events",
+"Process Creation"). Só quando nenhum dos dois nomes é encontrado é que
+essa subcategoria específica é ignorada, com um aviso registado no log de
+execução, sem interromper a aplicação das restantes. Este mecanismo existe
+porque `auditpol /set` falha (ou é ignorado) silenciosamente quando o nome
+da subcategoria não corresponde exatamente ao idioma da instalação do
+Windows.
 
 ## 4. Aumento do log de Segurança para pelo menos 512 MB
 
 O script também aumenta o tamanho máximo do Windows Security Event Log
 (`wevtutil sl Security /ms:<bytes>`) para, no mínimo, **512 MB**
 (536.870.912 bytes), acima do valor por omissão do Windows Server 2022
-(tipicamente 128 MB ou menos, dependendo da imagem).
+(tipicamente 128 MB ou menos, dependendo da imagem). Este valor é
+configurável pelo parâmetro `-LogSizeBytes` do script, cujo valor por
+omissão é exatamente `536870912`.
 
 ### Porquê 512 MB
 
@@ -113,3 +126,8 @@ efetivamente ao Wazuh Manager e ficam visíveis no SentryLens.
   SentryLens, no futuro, detetar desvios face à baseline de RBAC descrita
   em `06-rbac.md` (por exemplo, alertar quando uma conta é adicionada a um
   grupo crítico como `Domain Admins` fora do processo formal).
+
+Este documento foi afinado depois de o script `05-Set-AuditPolicy.ps1`
+estar finalizado, para que os nomes de parâmetros e o comportamento de
+confirmação de subcategorias aqui descritos correspondam exatamente à
+implementação real.
