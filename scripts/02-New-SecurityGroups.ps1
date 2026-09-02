@@ -74,6 +74,9 @@
     - Os grupos de dominio local criados aqui sao um conjunto de exemplo
       minimo (leitura por departamento); a matriz completa de permissoes por
       funcao fica fora do ambito deste script (ver docs/06-rbac.md).
+    - Este script nunca correu contra um dominio real; qualquer resumo ou
+      resultado apresentado reflete apenas o que uma execucao concreta
+      viesse a encontrar e criar, nunca um resultado inventado antecipadamente.
 #>
 
 [CmdletBinding(SupportsShouldProcess)]
