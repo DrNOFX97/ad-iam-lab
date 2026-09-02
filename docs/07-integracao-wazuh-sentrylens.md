@@ -9,9 +9,12 @@ Wazuh que afeta vários Event IDs relevantes para o AD, e fornece um guia de
 diagnóstico passo a passo para quando um evento esperado não chega ao
 dashboard.
 
-Não cobre a criação de regras Wazuh personalizadas nem o excerto de
-configuração do agente Windows para o canal Security: isso é trabalho de um
-passo posterior, ver secção 4.
+As regras Wazuh personalizadas e o excerto de configuração do agente
+Windows para o canal Security já foram escritos, em
+`wazuh/local_rules.xml` e `wazuh/ossec-agent-windows.conf` respetivamente
+(ver secção 5 para o detalhe e para o que fica pendente); este documento
+mantém-se focado na visão geral do caminho do evento e no guia de
+diagnóstico.
 
 Os factos de arquitetura usados aqui (IPs, portas, nomes de VM) seguem
 exatamente o que está definido em
@@ -77,32 +80,43 @@ que corresponda ao Event ID (e tipicamente ao decoder correto para o
 formato do Windows Eventlog), o Wazuh Manager recebe o evento, não o
 associa a nenhuma regra, e não gera alerta: o evento não é indexado.
 
-Event IDs relevantes para o laboratório de AD que estão em risco de não
-ter regra própria no ruleset base (a confirmar caso a caso; a lista
-definitiva de quais já têm cobertura e quais não faz parte do trabalho
-futuro descrito na secção 4):
+Este ponto foi investigado até ao fim, por inspeção direta ao código-fonte
+oficial do Wazuh (branch `4.14.9` do repositório `wazuh/wazuh`, ficheiros
+`ruleset/rules/0580-win-security_rules.xml` e
+`ruleset/rules/0955-WEF-baseline_rules.xml`), com verificação independente
+por grep direto ao XML real feita por dois agentes distintos. Conclusão:
+dos 19 Event IDs relevantes para este laboratório de AD, 17 já têm regra
+própria no ruleset base e não precisam de qualquer regra local:
 
-- `4720` - criação de conta de utilizador
-- `4722` - ativação de conta de utilizador
-- `4723` - tentativa de alteração de password
-- `4724` - tentativa de reset de password
-- `4725` - desativação de conta de utilizador
-- `4728` - membro adicionado a grupo global
-- `4729` - membro removido de grupo global
-- `4732` - membro adicionado a grupo local
-- `4733` - membro removido de grupo local
-- `4738` - alteração de conta de utilizador
-- `4740` - bloqueio de conta (account lockout)
-- `4756` - membro adicionado a grupo universal
-- `4757` - membro removido de grupo universal
-- `4767` - desbloqueio de conta de utilizador
+- `4720`/`4722` - criação/ativação de conta de utilizador -> regra `60109`
+- `4725`/`4726` - desativação/eliminação de conta de utilizador -> regra `60111`
+- `4728` - membro adicionado a grupo global -> regras `60141`/`60113`
+- `4729` - membro removido de grupo global -> regras `60142`/`60113`
+- `4732` - membro adicionado a grupo local -> regras `60144`/`60113`
+- `4733` - membro removido de grupo local -> regras `60145`/`60113`
+- `4738` - alteração de conta de utilizador -> regra `60110`
+- `4740` - bloqueio de conta (account lockout) -> regra `60115`
+- `4756` - membro adicionado a grupo universal -> regra `60151`
+- `4757` - membro removido de grupo universal -> regra `60152`
+- `4767` - desbloqueio de conta de utilizador -> regra `60133`
+- `4624` - logon com sucesso -> regra `60106` (e outras)
+- `4672` - atribuição de privilégios especiais -> regra `67028`
+- `4688` - criação de processo -> regra `67027`
+- `4698` - criação de tarefa agendada -> regra `60228`
 
-Além destes, alguns comportamentos específicos de `4624` (logon com
-sucesso), `4672` (atribuição de privilégios especiais), `4688` (criação de
-processo) e `4698` (criação de tarefa agendada) também podem não ter regra
-correspondente consoante o contexto exato em que ocorrem, mesmo que estes
-Event IDs, de um modo geral, tenham cobertura mais provável no ruleset
-base do que os de gestão de contas e grupos listados acima.
+Apenas dois Event IDs ficaram confirmados sem qualquer regra no ruleset
+base, por grep exaustivo aos dois ficheiros acima:
+
+- `4723` - tentativa de alteração de password pelo próprio utilizador
+- `4724` - reset de password de outra conta feito por um administrador
+
+Para cobrir exclusivamente estes dois casos foram escritas as regras
+locais `100723` e `100724` (nível 3, a herdar de `if_sid 60103`, o mesmo
+ponto da árvore de decisão onde estão penduradas as regras irmãs já
+confirmadas no ruleset base acima), em `wazuh/local_rules.xml`. Sem essas
+duas regras, um evento `4723` ou `4724` chega ao Wazuh Manager, não
+corresponde a nenhuma regra existente, e é descartado antes do Indexer,
+exatamente pela lógica descrita no parágrafo anterior.
 
 Nota sobre o código do SentryLens: `scripts/event_catalog.py` já contém
 lógica de classificação (nome, severidade, recomendação) para vários
@@ -115,9 +129,14 @@ correspondente nunca é chamado, o alerta nunca aparece em
 `GET /api/alerts`, e o dashboard não mostra nada, mesmo que o evento
 tenha ocorrido e esteja registado no Security Event Log do DC.
 
-A causa raiz desta limitação não é a auditoria do Windows nem o backend do
-SentryLens: é a ausência de regras específicas no Wazuh Manager para estes
-Event IDs.
+A causa raiz desta limitação, hoje confirmada, restringe-se aos Event IDs
+`4723` e `4724`: enquanto as regras `100723`/`100724` de
+`wazuh/local_rules.xml` não estiverem aplicadas no Wazuh Manager real, a
+ausência de regra (não a auditoria do Windows nem o backend do
+SentryLens) é a causa de esses dois eventos não chegarem ao Indexer nem ao
+dashboard. Para os restantes 17 Event IDs listados acima, esta causa não
+se aplica: já têm regra própria garantida no ruleset base instalado por
+omissão.
 
 ## 4. Diagnóstico: onde procurar quando um evento esperado não aparece
 
@@ -159,7 +178,10 @@ Se o serviço não está `Running`, o agente não está a ler nem a enviar
 nada, independentemente de o evento existir no Event Viewer. Verificar
 também o log do agente
 (`C:\Program Files (x86)\ossec-agent\ossec.log`) para erros de ligação ao
-Manager.
+Manager, e confirmar que o `ossec.conf` do agente inclui o bloco de
+`wazuh/ossec-agent-windows.conf` (canal `Security` com
+`log_format eventchannel`): sem esse bloco, o agente pode estar `Running`
+mas não estar a recolher o Security Event Log de todo.
 
 ### 4.3 Confirmar que o agente está ativo no Wazuh Manager
 
@@ -209,12 +231,23 @@ curl -k -u <utilizador>:<password> \
 ```
 
 Se o agente está `Active` no Manager (4.3) mas o evento **não aparece
-aqui**, o problema é, muito provavelmente, falta de regra no ruleset para
-esse Event ID: exatamente a limitação descrita na secção 3. Confirmar
-consultando as regras carregadas no Manager (ex.:
-`/var/ossec/bin/ossec-logtest` com uma amostra do evento, ou inspeção dos
-ficheiros de regras em `/var/ossec/ruleset/rules/`) para verificar se
-existe alguma regra que cubra o Event ID em causa.
+aqui**, a interpretação depende do Event ID em causa, conforme a secção 3:
+
+- Se for `4723` ou `4724`, a causa mais provável é a falta das regras
+  `100723`/`100724` de `wazuh/local_rules.xml` no Manager: confirmar que o
+  ficheiro foi copiado para `/var/ossec/etc/rules/local_rules.xml` e que o
+  serviço `wazuh-manager` foi reiniciado depois disso.
+- Se for um dos outros 17 Event IDs (todos já com regra própria
+  confirmada no ruleset base), a falta de regra deixa de ser explicação
+  plausível: a causa está noutro ponto, tipicamente rede, agente ou
+  auditoria do Windows não corretamente aplicada, apesar de esta etapa vir
+  depois de 4.1-4.3 já terem sido confirmados.
+
+Em qualquer dos casos, é possível confirmar diretamente as regras
+carregadas no Manager (ex.: `/var/ossec/bin/ossec-logtest` com uma amostra
+do evento, ou inspeção dos ficheiros de regras em
+`/var/ossec/ruleset/rules/` e `/var/ossec/etc/rules/local_rules.xml`) para
+verificar se existe alguma regra que cubra o Event ID em causa.
 
 ### 4.5 Confirmar que o backend do SentryLens obtém o dado
 
@@ -255,32 +288,49 @@ os pedidos de rede feitos a `http://localhost:8001`.
 | 4.1 Event Viewer do DC | Advanced Audit Policy / GPO de auditoria não aplicada |
 | 4.2 Serviço `WazuhSvc` no DC | Agente Wazuh parado ou mal instalado no DC |
 | 4.3 Agente ativo no Manager | Rede, porta (1514/1515) ou registo do agente no Manager |
-| 4.4 Evento no Indexer (porta 9200) | Falta de regra no ruleset do Wazuh Manager para o Event ID (ver secção 3) |
+| 4.4 Evento no Indexer (porta 9200) | Para `4723`/`4724`, `wazuh/local_rules.xml` não aplicado no Manager; para os outros 17 Event IDs (já cobertos no ruleset base), outra causa (rede, agente, auditoria) - ver secção 3 |
 | 4.5 Backend SentryLens (`/api/alerts`) | Parâmetros da consulta em `wazuh_client.py` ou ligação backend-Indexer |
 | 4.6 Frontend (`index.html`) | Lógica de apresentação ou consumo da API no dashboard |
 
 ## 5. O que fica pendente para um passo posterior
 
-Este documento cobre apenas a visão geral do caminho ponta a ponta e o
-guia de diagnóstico. Ficam explicitamente fora de âmbito, para um passo
-posterior deste mesmo repositório:
+Este documento cobre a visão geral do caminho ponta a ponta, o
+diagnóstico, e a investigação da secção 3. As regras Wazuh personalizadas
+e o excerto de configuração do agente Windows já existem neste
+repositório:
 
-- As regras Wazuh personalizadas (`wazuh/local_rules.xml`, ainda não
-  existe) necessárias para cobrir os Event IDs de gestão de contas e
-  grupos do AD listados na secção 3, que não têm regra própria garantida
-  no ruleset base.
-- O excerto de configuração do agente Windows (`wazuh/ossec-agent-windows.conf`,
-  ainda não existe) para garantir a recolha correta do canal Security no
-  agente instalado em `NORTADA-DC01`.
-- A lista definitiva e verificada, Event ID a Event ID, de quais já têm
-  cobertura no ruleset base do Wazuh instalado em 192.168.1.143 e quais
-  precisam efetivamente de regra personalizada. A lista da secção 3 é uma
-  lista de risco baseada em conhecimento geral do ruleset base do Wazuh,
-  não uma verificação feita contra a instalação real desta VM.
+- `wazuh/local_rules.xml` - as duas regras locais `100723` e `100724`
+  (nível 3, `if_sid 60103`) que cobrem os únicos dois Event IDs (`4723` e
+  `4724`) sem regra própria no ruleset base, conforme a investigação da
+  secção 3. O próprio ficheiro documenta, em comentário de topo, a
+  investigação, a justificação do nível escolhido e o caminho de
+  instalação.
+- `wazuh/ossec-agent-windows.conf` - o bloco `<localfile>` com
+  `log_format eventchannel` para o canal `Security`, a acrescentar ao
+  `ossec.conf` do agente instalado em `NORTADA-DC01`, necessário para que
+  os campos estruturados do evento (`TargetUserName`, `SubjectUserName`,
+  etc.) cheguem com fiabilidade suficiente para as regras locais os
+  usarem.
 
-Até essas regras serem escritas e validadas contra o Manager real, a
-limitação descrita na secção 3 deve ser considerada ativa: é expectável
-que criações de conta, alterações de grupo e outras operações de gestão
-de identidades no AD gerem eventos no DC que não chegam a aparecer no
-dashboard do SentryLens, apesar de a arquitetura de rede e a auditoria do
-Windows estarem corretamente configuradas.
+O que fica pendente é apenas a aplicação real destes dois ficheiros contra
+um Wazuh Manager e um agente reais, nomeadamente:
+
+- Copiar `wazuh/local_rules.xml` para
+  `/var/ossec/etc/rules/local_rules.xml` no Wazuh Manager (192.168.1.143)
+  e reiniciar o serviço (`systemctl restart wazuh-manager`) para as regras
+  serem carregadas.
+- Acrescentar o bloco de `wazuh/ossec-agent-windows.conf` ao `ossec.conf`
+  do agente em `NORTADA-DC01` e reiniciar o serviço (`Restart-Service
+  -Name WazuhSvc`).
+- Gerar eventos de teste `4723` e `4724` reais (alteração de password
+  pelo próprio utilizador e reset de password por um administrador) e
+  validar, seguindo o guia da secção 4, que ambos aparecem no Indexer
+  (`wazuh-alerts-*`) e no dashboard do SentryLens.
+
+Nenhum destes três passos foi ainda executado: os ficheiros `wazuh/` têm
+apenas sintaxe verificada localmente, não comportamento validado contra
+uma instalação real. Até essa validação ser feita, `4723` e `4724`
+continuam sujeitos à mesma limitação descrita na secção 3 caso as regras
+locais não sejam efetivamente aplicadas no Manager. Os restantes 17 Event
+IDs listados na secção 3 não dependem deste passo: já têm regra própria no
+ruleset base instalado por omissão.

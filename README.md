@@ -145,7 +145,9 @@ ad-iam-lab/
     07-integracao-wazuh-sentrylens.md
   scripts/          (vazia por agora, apenas .gitkeep)
   data/             (vazia por agora, apenas .gitkeep)
-  wazuh/            (vazia por agora, apenas .gitkeep)
+  wazuh/
+    local_rules.xml
+    ossec-agent-windows.conf
   evidencias/       (vazia por agora, apenas .gitkeep)
 ```
 
@@ -220,6 +222,24 @@ referência ao documento onde cada uma está justificada em detalhe.
   uma futura deteção de desvios de privilégios no SentryLens, evitando
   duas listas divergentes mantidas em separado. Ver
   [`docs/06-rbac.md`](docs/06-rbac.md), secções 1 e 2.
+
+- **Regras Wazuh locais apenas para os Event IDs 4723 e 4724, em nível
+  baixo (nível 3) em vez de um nível de alerta alto.** A investigação
+  direta ao ruleset base oficial do Wazuh (branch 4.14.9) confirmou que 17
+  dos 19 Event IDs de auditoria de AD relevantes para este laboratório já
+  têm regra própria no ruleset base; escrever regra local para os 19 seria
+  trabalho redundante e risco de duplicar alertas que o Wazuh já gera
+  sozinho. Dos dois Event IDs sem regra base, `4723` (tentativa de
+  alteração de password pelo próprio utilizador) e `4724` (reset de
+  password de outra conta por um administrador) são eventos
+  administrativos esperados do próprio funcionamento do laboratório, não
+  uma deteção de ataque, pelo que o nível escolhido é baixo (nível 3) e
+  não um nível de alerta alto; mesmo assim, nível igual ou superior a 3 é
+  o mínimo para o Wazuh gerar alerta e indexar o evento, condição
+  necessária para os futuros painéis do SentryLens conseguirem
+  consultá-lo. Ver `wazuh/local_rules.xml` (comentário de topo) e
+  [`docs/07-integracao-wazuh-sentrylens.md`](docs/07-integracao-wazuh-sentrylens.md),
+  secções 3 e 5.
 
 ## Relação com o SentryLens
 
