@@ -1,0 +1,78 @@
+<!--
+  local_rules.xml - Regras locais do Wazuh para o laboratorio ad-iam-lab
+
+  Contexto: dos 19 Event IDs do Windows Security relevantes para este
+  laboratorio de Active Directory, 17 ja tem regra propria no ruleset base
+  do Wazuh (confirmado por inspecao direta ao codigo-fonte oficial, branch
+  4.14.9, ficheiros ruleset/rules/0580-win-security_rules.xml e
+  ruleset/rules/0955-WEF-baseline_rules.xml): 4720/4722 -> 60109;
+  4725/4726 -> 60111; 4728 -> 60141/60113; 4729 -> 60142/60113;
+  4732 -> 60144/60113; 4733 -> 60145/60113; 4738 -> 60110; 4740 -> 60115;
+  4756 -> 60151; 4757 -> 60152; 4767 -> 60133; 4624 -> 60106 (e outras);
+  4672 -> 67028; 4688 -> 67027; 4698 -> 60228. Estes 17 nao precisam de
+  regra local: ja produzem alerta e ja sao indexados sem nada neste
+  ficheiro.
+
+  Apenas dois Event IDs ficaram confirmados sem qualquer regra no ruleset
+  base, por grep exaustivo aos ficheiros acima:
+    - 4723: tentativa de alteracao de password pelo proprio utilizador
+    - 4724: reset de password de outra conta feito por um administrador
+  As duas regras abaixo cobrem exclusivamente estes dois Event IDs. Sem
+  elas, um evento 4723 ou 4724 chega ao Wazuh Manager, nao corresponde a
+  nenhuma regra existente, e e descartado antes do Indexer: nunca aparece
+  no dashboard do SentryLens, mesmo com a auditoria do Windows corretamente
+  configurada no DC (ver docs/07-integracao-wazuh-sentrylens.md).
+
+  IDs de regra usados: 100723 e 100724, dentro do intervalo reservado a
+  regras locais/personalizadas do utilizador (100000-119999), escolhidos
+  por mnemonica com o proprio Event ID e sem colisao entre si.
+
+  Nivel 3: baixo o suficiente para nao soar como incidente de seguranca,
+  mas >= 3 para que o Wazuh gere alerta e o indexe (niveis 0-2 tipicamente
+  nao geram alerta nem sao indexados), tornando o evento pesquisavel no
+  dashboard.
+
+  if_sid aponta para 60103, a regra "pai" de gestao de contas de
+  utilizador no Windows Security, o mesmo ponto da arvore de decisao onde
+  as regras irmas ja confirmadas no ruleset base (4720/4722 -> 60109,
+  4738 -> 60110, 4725/4726 -> 60111, 4740 -> 60115, 4767 -> 60133, etc.)
+  tambem estao penduradas via if_sid 60103.
+
+  Onde colocar este ficheiro num Wazuh Manager real: o caminho padrao e
+  /var/ossec/etc/rules/local_rules.xml, que o Wazuh ja inclui e carrega
+  por omissao (ossec.conf ja referencia este ficheiro em <rule_include>,
+  nao sendo necessario editar mais nada para o ativar). Manteve-se o mesmo
+  nome local_rules.xml em vez de um ficheiro novo separado precisamente
+  para aproveitar essa inclusao automatica e evitar um passo manual extra
+  de registar um <rule_include> adicional em ossec.conf.
+
+  Depois de copiar este ficheiro para /var/ossec/etc/rules/local_rules.xml
+  no Wazuh Manager, e necessario reiniciar o servico para as regras serem
+  recarregadas:
+    systemctl restart wazuh-manager
+
+  Estado de validacao: estas regras ainda NAO foram carregadas nem
+  testadas contra um Wazuh Manager real. A sintaxe XML foi verificada
+  localmente (parsing), mas o comportamento efetivo (deteção correta do
+  Event ID, nivel de alerta, indexacao) fica pendente de validacao no
+  laboratorio real.
+-->
+<group name="local,syslog,windows,">
+
+  <rule id="100723" level="3">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4723$</field>
+    <description>Windows: tentativa de alteracao de password pelo proprio utilizador (Event ID 4723).</description>
+    <group>ciclo_de_vida,authentication_success,</group>
+    <options>no_full_log</options>
+  </rule>
+
+  <rule id="100724" level="3">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4724$</field>
+    <description>Windows: reset de password de outra conta efetuado por um administrador (Event ID 4724).</description>
+    <group>ciclo_de_vida,authentication_success,</group>
+    <options>no_full_log</options>
+  </rule>
+
+</group>
