@@ -100,10 +100,10 @@ memória. Detalhe do dimensionamento em
 
 ## Ordem de execução (prevista)
 
-Nesta entrega existe apenas a documentação de arquitetura e processos
-(`docs/`). Os scripts PowerShell referidos abaixo ainda não existem neste
-repositório: ficam para um passo/prompt seguinte. A ordem prevista, tal
-como documentada em `docs/02` a `docs/05`, é:
+Os scripts, os dados e as regras Wazuh referidos abaixo já existem neste
+repositório (ver "Estado atual do projeto"); o que falta é a criação real
+da VM e a execução efetiva desta sequência contra ela. A ordem, tal como
+documentada em `docs/02` a `docs/05`, é:
 
 1. Criar a VM `NORTADA-DC01` no VirtualBox com as especificações definidas
    em `docs/01-arquitetura.md` (Windows Server 2022 Evaluation, 4 GB RAM,
@@ -143,12 +143,21 @@ ad-iam-lab/
     05-onboarding-offboarding.md
     06-rbac.md
     07-integracao-wazuh-sentrylens.md
-  scripts/          (vazia por agora, apenas .gitkeep)
-  data/             (vazia por agora, apenas .gitkeep)
+  scripts/
+    00-Install-DomainController.ps1
+    01-New-OuStructure.ps1
+    02-New-SecurityGroups.ps1
+    03-Onboard-Users.ps1
+    04-Offboard-User.ps1
+    05-Set-AuditPolicy.ps1
+  data/
+    colaboradores.csv
+    rbac_baseline.json
+    saidas.csv
   wazuh/
     local_rules.xml
     ossec-agent-windows.conf
-  evidencias/       (vazia por agora, apenas .gitkeep)
+  evidencias/       (vazia por agora, apenas .gitkeep; ver "Estado atual do projeto")
 ```
 
 ## Porquê cada decisão

@@ -32,11 +32,12 @@
   nao geram alerta nem sao indexados), tornando o evento pesquisavel no
   dashboard.
 
-  if_sid aponta para 60103, a regra "pai" de gestao de contas de
-  utilizador no Windows Security, o mesmo ponto da arvore de decisao onde
-  as regras irmas ja confirmadas no ruleset base (4720/4722 -> 60109,
-  4738 -> 60110, 4725/4726 -> 60111, 4740 -> 60115, 4767 -> 60133, etc.)
-  tambem estao penduradas via if_sid 60103.
+  if_sid aponta para 60103 (o grupo generico de eventos de auditoria de
+  sucesso do Windows, "Windows audit success event"), nao por ser
+  especifico de contas de utilizador, mas por ser exatamente o mesmo ponto
+  da arvore de decisao onde as regras irmas ja confirmadas no ruleset base
+  (4720/4722 -> 60109, 4738 -> 60110, 4725/4726 -> 60111, 4740 -> 60115,
+  4767 -> 60133, etc.) tambem estao penduradas via if_sid 60103.
 
   Onde colocar este ficheiro num Wazuh Manager real: o caminho padrao e
   /var/ossec/etc/rules/local_rules.xml, que o Wazuh ja inclui e carrega
