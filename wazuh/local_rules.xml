@@ -63,7 +63,7 @@
     <if_sid>60103</if_sid>
     <field name="win.system.eventID">^4723$</field>
     <description>Windows: tentativa de alteracao de password pelo proprio utilizador (Event ID 4723).</description>
-    <group>ciclo_de_vida,authentication_success,</group>
+    <group>ciclo_de_vida,account_changed,</group>
     <options>no_full_log</options>
   </rule>
 
@@ -71,7 +71,7 @@
     <if_sid>60103</if_sid>
     <field name="win.system.eventID">^4724$</field>
     <description>Windows: reset de password de outra conta efetuado por um administrador (Event ID 4724).</description>
-    <group>ciclo_de_vida,authentication_success,</group>
+    <group>ciclo_de_vida,account_changed,</group>
     <options>no_full_log</options>
   </rule>
 

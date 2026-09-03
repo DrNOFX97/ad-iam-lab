@@ -277,22 +277,25 @@ Os dois projetos ligam-se por dois pontos concretos:
   (`docs/05-onboarding-offboarding.md`).
 - Documentação completa do modelo de RBAC e da deteção de desvios de
   privilégios prevista (`docs/06-rbac.md`).
-- Diagnóstico documentado da limitação conhecida do ruleset base do Wazuh
-  para vários Event IDs de gestão de contas e grupos do AD
-  (`docs/07-integracao-wazuh-sentrylens.md`, secção 3).
+- Investigação real e confirmada da cobertura do ruleset base do Wazuh
+  para os 19 Event IDs relevantes (17 já cobertos, apenas 4723 e 4724
+  precisaram de regra personalizada), com as regras
+  `wazuh/local_rules.xml` e o excerto de configuração do agente
+  `wazuh/ossec-agent-windows.conf` (`docs/07-integracao-wazuh-sentrylens.md`,
+  secções 3 e 5).
+- Os 6 scripts PowerShell completos: `00-Install-DomainController.ps1`,
+  `01-New-OuStructure.ps1`, `02-New-SecurityGroups.ps1`,
+  `03-Onboard-Users.ps1`, `04-Offboard-User.ps1`, `05-Set-AuditPolicy.ps1`.
+- Os ficheiros de dados completos: `data/colaboradores.csv` (28
+  colaboradores), `data/rbac_baseline.json` (23 cargos, cobertura exata),
+  `data/saidas.csv`.
 
 **Falta (pendente para passos seguintes):**
 
-- Os scripts PowerShell propriamente ditos:
-  `00-Install-DomainController.ps1`, `01-New-OuStructure.ps1`,
-  `02-New-SecurityGroups.ps1`, `03-Onboard-Users.ps1`,
-  `04-Offboard-User.ps1`, `05-Set-AuditPolicy.ps1`.
-- Os ficheiros de dados: `data/colaboradores.csv`, `data/saidas.csv`,
-  `data/rbac_baseline.json`.
-- As regras Wazuh personalizadas (`wazuh/local_rules.xml`) e o excerto de
-  configuração do agente Windows (`wazuh/ossec-agent-windows.conf`).
 - A criação real da VM `NORTADA-DC01` e a instalação do Windows Server
   2022 Evaluation.
+- Aplicar `wazuh/local_rules.xml` e o excerto de
+  `wazuh/ossec-agent-windows.conf` num Wazuh Manager e agente reais.
 - Qualquer validação prática: nada neste repositório foi ainda executado
   contra uma VM real. Não há confirmação de que a promoção do DC funciona,
   de que a política de auditoria gera os Event IDs esperados, de que o
