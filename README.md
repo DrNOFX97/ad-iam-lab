@@ -269,6 +269,64 @@ Os dois projetos ligam-se por dois pontos concretos:
    ambos os repositórios, para que quem consulte um projeto encontre
    facilmente o outro.
 
+**Fase 5 do roteiro (concluída do lado do SentryLens): três painéis de
+deteção de IAM já em produção.** O que a secção anterior descrevia como
+objetivo já foi construído e validado no repositório SentryLens, não
+apenas previsto:
+
+- `scripts/event_catalog.py` foi alargado com mais 8 Event IDs; as 31
+  entradas do catálogo estão agora todas categorizadas (nome, severidade,
+  recomendação).
+- Três novos endpoints na API, todos com lógica real, não stubs:
+  `/api/lifecycle` (deteções de ciclo de vida de contas), `/api/privileges`
+  (auditoria de desvios de privilégios face à baseline RBAC) e
+  `/api/admin-activity` (atividade de contas privilegiadas/PAM).
+- Três novos separadores no dashboard, com um seletor de período (7/30/90
+  dias) partilhado entre os três e estados de carregamento, vazio e erro
+  independentes por painel.
+- 38 testes automatizados reais no backend cobrem esta funcionalidade. O
+  frontend foi construído em "modo extensão": zero cores novas, zero
+  frameworks novos, diff puramente aditivo (0 remoções ao HTML/CSS/JS já
+  existente), reaproveitando por completo o sistema visual já existente do
+  SentryLens.
+
+Deteções implementadas, por painel:
+
+- **Ciclo de vida de contas**: conta desativada com login bem-sucedido
+  depois (crítico, offboarding falhado); conta criada e eliminada em menos
+  de 24h (alto, possível conta descartável); conta criada fora de horário
+  laboral ou ao fim de semana (médio); conta criada e adicionada a um
+  grupo crítico na mesma sessão (alto).
+- **Auditoria de privilégios**: adição a grupo fora dos
+  `grupos_permitidos` do cargo; adição a um grupo explicitamente listado em
+  `grupos_proibidos`; qualquer adição a um dos grupos críticos (Domain
+  Admins, Enterprise Admins, Schema Admins, Account Operators, Backup
+  Operators — ver `docs/06-rbac.md`, secção 3); e um utilizador que não
+  existe na baseline é, em si, um achado de auditoria (fail closed), nunca
+  ignorado silenciosamente.
+- **Contas privilegiadas**: conta `adm.*` usada para login interativo numa
+  estação (alto, viola a separação PAM); conta `adm.*` inativa há mais de
+  60 dias (médio); atividade administrativa fora de horário laboral
+  (médio); conta normal a receber privilégios especiais sem estar num
+  grupo administrativo (alto).
+
+Thresholds usados de forma consistente nos três painéis: janela de 24h
+entre criação e eliminação para assinalar "conta descartável"; 60 dias de
+inatividade para sinalizar uma conta administrativa parada; horário
+laboral considerado 08:00–20:00, com o fim de semana sempre tratado como
+fora de horário.
+
+**Limitação conhecida e deliberada: `/api/privileges` ainda não tem acesso
+direto a `data/colaboradores.csv`.** O painel de auditoria de privilégios
+foi desenhado, tal como previsto em `docs/06-rbac.md` (secção 4), para
+cruzar a pertença real a grupos com o `Cargo` de cada utilizador; hoje esse
+cruzamento não existe porque o SentryLens não tem ainda uma ligação direta
+aos dados deste repositório. Sem essa ligação, toda a pertença a grupos
+observada cai em "cargo desconhecido", que o painel trata como um desvio
+por desenho (fail closed) e nunca ignora silenciosamente. Ligar
+efetivamente os dados dos dois repositórios fica deferido para uma fase de
+integração futura: é uma lacuna conhecida e deliberada, não uma falha.
+
 ## Estado atual do projeto
 
 **Já existe:**
@@ -298,6 +356,13 @@ Os dois projetos ligam-se por dois pontos concretos:
 - Os ficheiros de dados completos: `data/colaboradores.csv` (28
   colaboradores), `data/rbac_baseline.json` (23 cargos, cobertura exata),
   `data/saidas.csv`.
+- Fase 5 do roteiro concluída do lado do SentryLens: os três painéis de
+  deteção de IAM (ciclo de vida de contas, auditoria de privilégios,
+  atividade de contas privilegiadas) já estão implementados e validados
+  por 38 testes automatizados reais no dashboard consumidor. Ver secção
+  "Relação com o SentryLens" acima para o detalhe, incluindo a limitação
+  conhecida de `/api/privileges` sem ligação direta a
+  `data/colaboradores.csv`.
 
 **Falta (pendente para passos seguintes):**
 
@@ -311,3 +376,14 @@ Os dois projetos ligam-se por dois pontos concretos:
   agente Wazuh regista eventos, nem de que esses eventos chegam
   efetivamente ao dashboard do SentryLens. Todos os passos descritos nos
   documentos são desenho, não resultado observado.
+
+**Fora de âmbito, por agora (adiado deliberadamente):**
+
+- Um exercício de Access Review (auditoria da acumulação de acessos ao
+  longo do tempo, tipicamente sobre 20 a 30 utilizadores) e um documento
+  conceptual de PAM, ambos a construir sobre os mesmos dados da Nortada
+  Logística. Os 2 colaboradores com `DepartamentoAnterior` preenchido em
+  `data/colaboradores.csv` (Nuno Barbosa, vindo de Operações; Helena
+  Fernandes, vinda de Financeira) existem precisamente para dar a esse
+  exercício futuro um caso real de acumulação de acessos entre
+  departamentos para analisar.
