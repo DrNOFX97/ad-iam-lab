@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="logo.png" alt="Logo do ad-iam-lab" width="160">
+</p>
+
 # ad-iam-lab
 
 Laboratório de Active Directory e gestão de identidades (IAM) da empresa
